@@ -1,0 +1,1249 @@
+{
+  "info": {
+    "name": "Sabor Gourmet - EVA2 - Pruebas REST",
+    "description": "Colección de pruebas funcionales y errores para la Unidad 2. Importar en Postman. Ejecutar primero la carpeta 01 en orden y solo luego de reiniciar manualmente la carpeta 02. Genera registros de prueba en datos.json.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "clienteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clienteTemporalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mesaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mesaLibreId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reservaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "correoUnico",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "numeroMesa",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "numeroMesaLibre",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fechaPrueba",
+      "value": "2031-05-14",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Pruebas funcionales, HTTP y errores",
+      "description": "Ejecutar secuencialmente usando Run collection con la API activa. La primera solicitud genera datos unicos. Son 39 escenarios que dejan una reserva cancelada en datos.json.",
+      "item": [
+        {
+          "name": "01 - GET listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Datos unicos para poder repetir las pruebas sin duplicar emails ni mesas.",
+                  "const n = Date.now();",
+                  "pm.collectionVariables.set(\"correoUnico\", \"eva2.\" + n + \"@ejemplo.cl\");",
+                  "const base = Math.floor(1000000 + Math.random() * 900000000);",
+                  "pm.collectionVariables.set(\"numeroMesa\", String(base));",
+                  "pm.collectionVariables.set(\"numeroMesaLibre\", String(base + 1));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Responde un arreglo JSON\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 - POST crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Daniela\",\n  \"apellido\": \"Reyes\",\n  \"email\": \"{{correoUnico}}\",\n  \"telefono\": \"+56911112222\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "const j=pm.response.json();",
+                  "pm.test(\"Cliente creado con ID\", () => pm.expect(j.id).to.be.a(\"number\"));",
+                  "pm.collectionVariables.set(\"clienteId\",String(j.id));",
+                  "pm.test(\"Email guardado\", () => pm.expect(j.email).to.eql(pm.collectionVariables.get(\"correoUnico\").toLowerCase()));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - GET buscar cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"ID coincide\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"clienteId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 - PUT modificar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Daniela\",\n  \"apellido\": \"Rojas\",\n  \"email\": \"{{correoUnico}}\",\n  \"telefono\": \"+56922223333\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Cambio de apellido persistido\", () => pm.expect(pm.response.json().apellido).to.eql(\"Rojas\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 - POST cliente sin nombre -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"apellido\": \"Sin Nombre\",\n  \"email\": \"vacío@ejemplo.cl\",\n  \"telefono\": \"1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Cuerpo de error JSON\", () => pm.expect(pm.response.json().estado).to.eql(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 - POST email repetido -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Otro\",\n  \"apellido\": \"Cliente\",\n  \"email\": \"{{correoUnico}}\",\n  \"telefono\": \"1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 - GET cliente inexistente -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/999999999",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 - GET listar mesas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Devuelve lista JSON\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 - POST crear mesa de capacidad 4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/mesas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": {{numeroMesa}},\n  \"capacidad\": 4,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "const j=pm.response.json();",
+                  "pm.collectionVariables.set(\"mesaId\",String(j.id));",
+                  "pm.test(\"Mesa activa y capacidad correcta\", () => { pm.expect(j.activa).to.eql(true); pm.expect(j.capacidad).to.eql(4); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 - GET mesa por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/{{mesaId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Mesa localizada\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"mesaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 - PUT aumentar mesa a capacidad 5",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/mesas/{{mesaId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": {{numeroMesa}},\n  \"capacidad\": 5,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Capacidad actualizada\", () => pm.expect(pm.response.json().capacidad).to.eql(5));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 - POST crear segunda mesa de capacidad 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/mesas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": {{numeroMesaLibre}},\n  \"capacidad\": 2,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "const j=pm.response.json();",
+                  "pm.collectionVariables.set(\"mesaLibreId\",String(j.id));",
+                  "pm.test(\"Segunda mesa creada\", () => pm.expect(j.capacidad).to.eql(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 - POST número de mesa duplicado -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/mesas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": {{numeroMesa}},\n  \"capacidad\": 2,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14 - GET disponibles antes de reservar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/disponibles?fecha={{fechaPrueba}}&hora=20:00&personas=3",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const ids=pm.response.json().map(m=>m.id);",
+                  "pm.test(\"Mesa principal libre\", () => pm.expect(ids).to.include(Number(pm.collectionVariables.get(\"mesaId\"))));",
+                  "pm.test(\"Mesa de capacidad 2 no cumple\", () => pm.expect(ids).not.to.include(Number(pm.collectionVariables.get(\"mesaLibreId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "15 - POST crear reserva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"mesaId\": {{mesaId}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"20:00\",\n  \"cantidadPersonas\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "const j=pm.response.json();",
+                  "pm.collectionVariables.set(\"reservaId\",String(j.id));",
+                  "pm.test(\"Reserva ACTIVA\", () => pm.expect(j.estado).to.eql(\"ACTIVA\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16 - GET reserva por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"ID de reserva coincide\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"reservaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "17 - GET listar reservas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const ids=pm.response.json().map(r=>r.id);",
+                  "pm.test(\"Lista contiene reserva creada\", () => pm.expect(ids).to.include(Number(pm.collectionVariables.get(\"reservaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18 - GET disponibilidad con reserva activa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/disponibles?fecha={{fechaPrueba}}&hora=20:30&personas=3",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const ids=pm.response.json().map(m=>m.id);",
+                  "pm.test(\"Mesa ocupada NO disponible\", () => pm.expect(ids).not.to.include(Number(pm.collectionVariables.get(\"mesaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "19 - POST reserva superpuesta -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"mesaId\": {{mesaId}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"21:00\",\n  \"cantidadPersonas\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20 - POST sobrecapacidad -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"mesaId\": \"{{mesaLibreId}}\",\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"20:00\",\n  \"cantidadPersonas\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21 - POST cliente inexistente -> 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": 999999999,\n  \"mesaId\": {{mesaId}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"20:00\",\n  \"cantidadPersonas\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22 - POST reserva inválida -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"mesaId\": {{mesaId}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"20:00\",\n  \"cantidadPersonas\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "23 - PUT modificar horario reserva",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"mesaId\": {{mesaId}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"21:00\",\n  \"cantidadPersonas\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Horario actualizado\", () => pm.expect(pm.response.json().hora).to.match(/^21:00/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "24 - GET disponible cuando termina turno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/disponibles?fecha={{fechaPrueba}}&hora=23:00&personas=3",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const ids=pm.response.json().map(m=>m.id);",
+                  "pm.test(\"Mesa libre a las 23:00\", () => pm.expect(ids).to.include(Number(pm.collectionVariables.get(\"mesaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "25 - PUT desactivar mesa con reserva -> 409",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/mesas/{{mesaId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": {{numeroMesa}},\n  \"capacidad\": 5,\n  \"activa\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "26 - DELETE cliente con reserva -> 409",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "27 - DELETE mesa con reserva -> 409",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/{{mesaId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "28 - PATCH cancelar reserva",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}/cancelar",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Estado CANCELADA\", () => pm.expect(pm.response.json().estado).to.eql(\"CANCELADA\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "29 - GET disponibilidad tras cancelar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/disponibles?fecha={{fechaPrueba}}&hora=21:00&personas=3",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const ids=pm.response.json().map(m=>m.id);",
+                  "pm.test(\"Mesa liberada\", () => pm.expect(ids).to.include(Number(pm.collectionVariables.get(\"mesaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "30 - PATCH cancelar de nuevo -> 409",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}/cancelar",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "31 - PUT reserva cancelada -> 409",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"mesaId\": {{mesaId}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"hora\": \"22:00\",\n  \"cantidadPersonas\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "32 - GET reserva cancelada sigue en historial",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Historial conserva CANCELADA\", () => pm.expect(pm.response.json().estado).to.eql(\"CANCELADA\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "33 - GET disponibilidad personas 0 -> 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/disponibles?fecha={{fechaPrueba}}&hora=21:00&personas=0",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "34 - DELETE segunda mesa sin reservas -> 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/{{mesaLibreId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 204\", function () { pm.response.to.have.status(204); });",
+                  "pm.test(\"Sin cuerpo\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "35 - GET mesa eliminada -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/{{mesaLibreId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "36 - POST cliente temporal sin reservas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Temporal\",\n  \"apellido\": \"Prueba\",\n  \"email\": \"temporal.{{correoUnico}}\",\n  \"telefono\": \"11111111\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"clienteTemporalId\", String(pm.response.json().id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "37 - DELETE cliente temporal -> 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteTemporalId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "38 - GET cliente eliminado -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteTemporalId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "39 - GET reserva cancelada tras otras operaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Reserva permanece guardada\", () => pm.expect(pm.response.json().estado).to.eql(\"CANCELADA\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Persistencia (ejecutar SOLO tras reiniciar)",
+      "description": "Detener aplicación con Ctrl+C, arrancarla nuevamente con .\\mvnw.cmd spring-boot:run, y ejecutar estas 3 solicitudes para verificar recuperación desde datos.json. No correr junto a la primera carpeta.",
+      "item": [
+        {
+          "name": "01 - GET reserva recuperada despues de reinicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reservas/{{reservaId}}",
+            "description": "Ejecutar SOLO tras detener la API y volver a iniciarla. Comprobar que los datos se cargan desde datos.json."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j=pm.response.json();",
+                  "pm.test(\"Datos conservados despues de reinicio\", () => { pm.expect(j.estado).to.eql(\"CANCELADA\"); pm.expect(j.id).to.eql(Number(pm.collectionVariables.get(\"reservaId\"))); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 - GET mesa asociada recuperada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/mesas/{{mesaId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Mesa conservada\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"mesaId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - GET cliente asociado recuperado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clientes/{{clienteId}}",
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Cliente conservado\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"clienteId\"))));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
