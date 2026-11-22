@@ -1,0 +1,24 @@
+{
+  "clientes" : [ {
+    "id" : 1,
+    "nombre" : "Daniela",
+    "apellido" : "Rojas",
+    "email" : "eva2.1795356714304@ejemplo.cl",
+    "telefono" : "+56922223333"
+  } ],
+  "mesas" : [ {
+    "id" : 1,
+    "numero" : 270877429,
+    "capacidad" : 5,
+    "activa" : true
+  } ],
+  "reservas" : [ {
+    "id" : 1,
+    "clienteId" : 1,
+    "mesaId" : 1,
+    "fecha" : "2031-05-14",
+    "hora" : "21:00:00",
+    "cantidadPersonas" : 3,
+    "estado" : "CANCELADA"
+  } ]
+}
