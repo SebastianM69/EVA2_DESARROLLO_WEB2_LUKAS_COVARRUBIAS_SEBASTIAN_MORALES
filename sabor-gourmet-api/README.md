@@ -31,24 +31,42 @@ src/main/java/cl/ipss/saborgourmet/
 
 El recorrido habitual es `Controller → Service → Repository → datos.json`. Los Controller no contienen reglas de negocio ni leen el archivo; los Service comprueban las operaciones; el Repository realiza la persistencia.
 
-## Requisitos de ejecución
+## Ejecución desde cualquier ubicación (rutas relativas)
 
-Tener instalado Java JDK 21 y acceso a Internet para la primera descarga de dependencias. No se necesita instalar Maven globalmente: el proyecto incluye Maven Wrapper.
+**Requisitos:** JDK 21 configurado en `PATH`, permisos para leer y escribir en la carpeta del proyecto, conexión a Internet para la primera descarga de dependencias y puerto 8080 disponible. No hace falta instalar Maven de forma independiente: están incluidos `mvnw`, `mvnw.cmd` y la carpeta `.mvn`.
 
-En Windows PowerShell, abrir una terminal en la carpeta `sabor-gourmet-api` (la que contiene `pom.xml`) y ejecutar:
+El repositorio de Git contiene la subcarpeta `sabor-gourmet-api/`. Después de clonar el repositorio o extraer el archivo ZIP, hay que abrir una terminal **dentro de esa subcarpeta**, donde está `pom.xml`. La ubicación del directorio padre es indiferente.
+
+### Windows (PowerShell)
+
+Abre la carpeta `sabor-gourmet-api` en el Explorador, escribe `powershell` en la barra de direcciones y presiona Enter. Luego ejecuta:
 
 ```powershell
 .\mvnw.cmd clean test
 .\mvnw.cmd spring-boot:run
 ```
 
-La API queda disponible en `http://localhost:8080`. Mantener abierta la terminal mientras se utiliza Postman. Para detener el servidor, presionar `Ctrl+C`.
+La primera orden compila y ejecuta las pruebas; la segunda inicia la API. `Ctrl+C` detiene el servidor. También puedes acceder desde el directorio del repositorio con `cd .\sabor-gourmet-api`.
 
-Para ejecutar las pruebas sin iniciar manualmente la API:
+### Linux o macOS
 
-```powershell
-.\mvnw.cmd clean test
+Desde la carpeta `sabor-gourmet-api`:
+
+```bash
+chmod +x mvnw  # solo si el archivo no tiene permiso de ejecución
+./mvnw clean test
+./mvnw spring-boot:run
 ```
+
+No se requieren scripts adicionales para iniciar la aplicación. El acceso a la API es `http://localhost:8080`. Postman se configura con esta dirección mediante la variable `baseUrl`.
+
+### Directorio de trabajo y portabilidad
+
+La propiedad `app.datos.ruta=datos.json` es **relativa**: `ArchivoJsonRepository` la resuelve contra el directorio de trabajo con `Path.of(ruta).toAbsolutePath().normalize()`. Por eso, si se ejecuta desde `sabor-gourmet-api`, el archivo utilizado es `sabor-gourmet-api/datos.json` tanto en Windows como en Linux o macOS. No hay una ruta de usuario o de Escritorio escrita en el código.
+
+Si la aplicación se abre desde un IDE, configura su *working directory* como la carpeta que contiene `pom.xml`. Si se ejecuta desde otra ubicación, podría crear o utilizar `datos.json` allí en lugar del que viene con el proyecto.
+
+Antes de repetir una demostración, haz una copia de `datos.json` si necesitas conservar los registros: las pruebas funcionales de Postman **modifican ese archivo**.
 
 ## Persistencia en `datos.json`
 
@@ -59,7 +77,7 @@ spring.application.name=sabor-gourmet-api
 app.datos.ruta=datos.json
 ```
 
-La ruta relativa se resuelve desde la carpeta desde la que se inicia Spring Boot. **Ejecutar los comandos dentro de `sabor-gourmet-api`** para que se utilice el archivo incluido en el proyecto.
+La ruta se resuelve desde el directorio de trabajo. Para usar el JSON incluido en el proyecto, los comandos deben ejecutarse desde la carpeta `sabor-gourmet-api`, como se indica arriba.
 
 El archivo contiene las colecciones `clientes`, `mesas` y `reservas`. Las referencias entre registros se guardan como `clienteId` y `mesaId`. Un ejemplo de estructura es:
 
@@ -165,3 +183,7 @@ La primera carpeta crea y modifica registros de prueba. Los códigos 400, 404 y 
 ## Alcance
 
 Esta entrega implementa una API REST para uso académico, con almacenamiento JSON en un archivo local. No incorpora autenticación, base de datos relacional ni interfaz gráfica, ya que no forman parte de la evaluación. La sincronización de escritura evita colisiones dentro de una sola instancia; no se diseñó para varias instancias compartiendo el mismo archivo.
+
+## Informe técnico
+
+El informe académico está en `docs/EVU2_GRUPO_COVARRUBIAS_LUKAS_MORALES_SEBASTIAN.docx`. Antes de entregarlo, completar el nombre del docente en la portada.

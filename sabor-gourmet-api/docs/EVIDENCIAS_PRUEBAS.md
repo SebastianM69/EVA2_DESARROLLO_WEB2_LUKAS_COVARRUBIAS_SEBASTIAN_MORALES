@@ -47,7 +47,3 @@ Verificaciones: `GET /api/reservas/{id}` conserva la reserva; `GET /api/mesas/{i
 ## 4. Evidencia del archivo JSON
 
 La entrega incluye `datos.json` en la raíz de `sabor-gourmet-api`, con las tres colecciones y referencias entre registros. La ruta se configura mediante `app.datos.ruta=datos.json`.
-
-## 5. Interpretación
-
-Los resultados registrados respaldan el funcionamiento de los escenarios comprobados. No implican que el docente ya haya asignado una nota ni que se hayan probado todas las combinaciones posibles de datos.
